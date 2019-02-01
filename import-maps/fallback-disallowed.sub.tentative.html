@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+<script src="resources/test-helper.js"></script>
+
+<script>
+const importMap = `
+{
+  "imports": {
+    "bare": "./resources/log.py?name=bare",
+
+    "./resources/log.py?name=http-to-builtin": [
+      "./resources/log.py?name=http-to-builtin",
+      "@std/blank"
+    ],
+
+    "./resources/log.py?name=fallback-to-different-url-1": [
+      "@std/blank",
+      "./resources/log.py?name=something-different"
+    ],
+    "./resources/log.py?name=fallback-to-different-url-2": [
+      "@std/none",
+      "./resources/log.py?name=something-different2"
+    ],
+    "./resources/log.py?name=fallback-to-different-origin-1": [
+      "@std/blank",
+      "https://{{domains[www1]}}:{{ports[https][0]}}/import-maps/resources/log.py?name=fallback-to-different-origin-1"
+    ],
+    "./resources/log.py?name=fallback-to-different-origin-2": [
+      "@std/none",
+      "https://{{domains[www1]}}:{{ports[https][0]}}/import-maps/resources/log.py?name=fallback-to-different-origin-2"
+    ],
+
+    "./resources/log.py?name=more-than-two-values-1": [
+      "@std/none",
+      "@std/blank",
+      "./resources/log.py?name=more-than-two-values-1"
+    ],
+    "./resources/log.py?name=more-than-two-values-2": [
+      "@std/none",
+      "./resources/log.py?name=more-than-two-values-2",
+      "@std/blank"
+    ],
+    "./resources/log.py?name=fallback-from-http": [
+      "./resources/log.py?name=non-built-in",
+      "./resources/log.py?name=fallback-from-http"
+    ],
+    "./resources/log.py?name=fallback-from-data-1": [
+      "data:text/plain,",
+      "./resources/log.py?name=fallback-from-http"
+    ],
+    "./resources/log.py?name=fallback-from-data-2": [
+      "data:text/javascript,log.push('dataURL')",
+      "./resources/log.py?name=fallback-from-http"
+    ]
+  }
+}
+`;
+const tests = {};
+for (const key in JSON.parse(importMap).imports) {
+  if (key === "bare") {
+    continue;
+  }
+  tests[key] =
+    [Result.URL, Result.URL, Result.PARSE_ERROR, Result.PARSE_ERROR];
+}
+doTests(importMap, null, tests);
+</script>
+<body>

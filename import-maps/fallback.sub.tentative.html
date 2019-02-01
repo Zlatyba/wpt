@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+<script src="resources/test-helper.js"></script>
+
+<script>
+const importMap = `
+{
+  "imports": {
+    "./resources/log.py?name=blank": [
+      "@std/blank",
+      "./resources/log.py?name=blank"
+    ],
+    "./resources/log.py?name=none": [
+      "@std/none",
+      "./resources/log.py?name=none"
+    ],
+    "https://{{domains[www1]}}:{{ports[https][0]}}/import-maps/resources/log.py?name=cross-origin-blank": [
+      "@std/blank",
+      "https://{{domains[www1]}}:{{ports[https][0]}}/import-maps/resources/log.py?name=cross-origin-blank"
+    ],
+    "https://{{domains[www1]}}:{{ports[https][0]}}/import-maps/resources/log.py?name=cross-origin-none": [
+      "@std/none",
+      "https://{{domains[www1]}}:{{ports[https][0]}}/import-maps/resources/log.py?name=cross-origin-none"
+    ],
+
+    "./resources/log.py?name=std-blank": [
+      "std:blank",
+      "./resources/log.py?name=std-blank"
+    ],
+    "./resources/log.py?name=std-none": [
+      "std:none",
+      "./resources/log.py?name=std-none"
+    ],
+    "https://{{domains[www1]}}:{{ports[https][0]}}/import-maps/resources/log.py?name=std-cross-origin-blank": [
+      "std:blank",
+      "https://{{domains[www1]}}:{{ports[https][0]}}/import-maps/resources/log.py?name=std-cross-origin-blank"
+    ],
+    "https://{{domains[www1]}}:{{ports[https][0]}}/import-maps/resources/log.py?name=std-cross-origin-none": [
+      "std:none",
+      "https://{{domains[www1]}}:{{ports[https][0]}}/import-maps/resources/log.py?name=std-cross-origin-none"
+    ]
+
+  }
+}
+`;
+const tests = {
+  // Arrays of expected results for:
+  // - <script src type="module">,
+  // - <script src> (classic script),
+  // - static import, and
+  // - dynamic import.
+  // Result.URL indicates that the specifier was not re-mapped by import maps,
+  // i.e. either considered as a relative path, or fallback occured.
+  "./resources/log.py?name=blank":
+    [Result.URL, Result.URL, Result.BUILTIN, Result.BUILTIN],
+  "./resources/log.py?name=none":
+    [Result.URL, Result.URL, Result.URL, Result.URL],
+  "https://{{domains[www1]}}:{{ports[https][0]}}/import-maps/resources/log.py?name=cross-origin-blank":
+    [Result.URL, Result.URL, Result.BUILTIN, Result.BUILTIN],
+  "https://{{domains[www1]}}:{{ports[https][0]}}/import-maps/resources/log.py?name=cross-origin-none":
+    [Result.URL, Result.URL, Result.URL, Result.URL],
+
+  "./resources/log.py?name=std-blank":
+    [Result.URL, Result.URL, Result.BUILTIN, Result.BUILTIN],
+  "./resources/log.py?name=std-none":
+    [Result.URL, Result.URL, Result.URL, Result.URL],
+  "https://{{domains[www1]}}:{{ports[https][0]}}/import-maps/resources/log.py?name=std-cross-origin-blank":
+    [Result.URL, Result.URL, Result.BUILTIN, Result.BUILTIN],
+  "https://{{domains[www1]}}:{{ports[https][0]}}/import-maps/resources/log.py?name=std-cross-origin-none":
+    [Result.URL, Result.URL, Result.URL, Result.URL],
+};
+
+doTests(importMap, null, tests);
+</script>
+<body>

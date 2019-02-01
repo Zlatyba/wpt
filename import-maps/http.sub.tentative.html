@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+<script src="resources/test-helper.js"></script>
+
+<script>
+// "bare/..." (i.e. without leading "./") are bare specifiers
+// (not relative paths).
+const importMap = `
+{
+  "imports": {
+    "bare": "./resources/log.py?name=bare",
+
+    "./resources/log.py?name=foo": "./resources/log.py?name=bar",
+    "./resources/log.py?name=cross-origin-foo": "https://{{domains[www1]}}:{{ports[https][0]}}/import-maps/resources/log.py?name=cross-origin-bar",
+    "./resources/log.py?name=to-data": "data:text/javascript,log.push('dataURL')",
+
+    "./resources/log.py?name=std-blank": "std:blank",
+    "./resources/log.py?name=blank": "@std/blank",
+    "./resources/log.py?name=std-none": "std:none",
+    "./resources/log.py?name=none": "@std/none",
+
+    "./resources/log.py?name=to-bare": "bare"
+  }
+}
+`;
+
+const tests = {
+  // Arrays of expected results for:
+  // - <script src type="module">,
+  // - <script src> (classic script),
+  // - static import, and
+  // - dynamic import.
+
+  // Currently, Chromium's implementation resolves import maps as a part of
+  // specifier resolution, and thus failure in import map resolution causes
+  // a parse error, not fetch error. Therefore, we use Result.PARSE_ERROR
+  // below.
+
+  // HTTP(S) to HTTP(S).
+  "{{location[server]}}/import-maps/resources/log.py?name=foo":
+    [Result.URL, Result.URL, "log:bar", "log:bar"],
+  "{{location[server]}}/import-maps/resources/log.py?name=cross-origin-foo":
+    [Result.URL, Result.URL, "log:cross-origin-bar", "log:cross-origin-bar"],
+
+  // HTTP(S) to data:
+  "{{location[server]}}/import-maps/resources/log.py?name=to-data":
+    [Result.URL, Result.URL, "dataURL", "dataURL"],
+
+  // HTTP(S) to built-in.
+  "{{location[server]}}/import-maps/resources/log.py?name=std-blank":
+    [Result.URL, Result.URL, Result.BUILTIN, Result.BUILTIN],
+  "{{location[server]}}/import-maps/resources/log.py?name=blank":
+    [Result.URL, Result.URL, Result.BUILTIN, Result.BUILTIN],
+  "{{location[server]}}/import-maps/resources/log.py?name=std-none":
+    [Result.URL, Result.URL, Result.PARSE_ERROR, Result.PARSE_ERROR],
+  "{{location[server]}}/import-maps/resources/log.py?name=none":
+    [Result.URL, Result.URL, Result.PARSE_ERROR, Result.PARSE_ERROR],
+
+  // HTTP(S) to bare mapping is disabled.
+  "{{location[server]}}/import-maps/resources/log.py?name=to-bare":
+    [Result.URL, Result.URL, Result.PARSE_ERROR, Result.PARSE_ERROR],
+};
+
+doTests(importMap, null, tests);
+</script>
+<body>
